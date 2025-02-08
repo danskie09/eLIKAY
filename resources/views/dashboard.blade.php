@@ -4,31 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Location Tracker</title>
+    <title>eLIKAY</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <!-- Add Tailwind CSS CDN -->
+    <!-- Add Tailwind CSS and Heroicons CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/heroicons@2.0.18/24/outline/index.js"></script>
 </head>
-<body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- Navigation -->
-        <nav class="bg-white shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <h1 class="flex items-center text-2xl font-bold text-gray-900">Location Tracker</h1>
-                    <form method="POST" action="{{ route('logout') }}" class="flex items-center">
-                        @csrf
-                        <button type="submit" class="text-gray-600 hover:text-gray-900 px-3 py-2">
-                            {{ __('Log Out') }}
-                        </button>
-                    </form>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm fixed w-full z-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-900">eLIKAY</h1>
                 </div>
+                <form method="POST" action="{{ route('logout') }}" class="flex items-center">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>{{ __('Log Out') }}</span>
+                    </button>
+                </form>
             </div>
-        </nav>
+        </div>
+    </nav>
 
+    <div class="pt-16 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             @if (session('success'))
                 <div class="mb-4 bg-green-50 border border-green-200 text-green-800 rounded-lg p-4">
@@ -36,101 +46,151 @@
                 </div>
             @endif
 
-            <!-- Map Container -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div id="map" class="h-[500px] w-full"></div>
-            </div>
-
-            <!-- Status Legend -->
-            <div class="mt-4 bg-white rounded-lg shadow-sm p-4 flex space-x-6">
-                <span class="flex items-center">
-                    <span class="w-3 h-3 rounded-full bg-black mr-2"></span>Active
-                </span>
-                <span class="flex items-center">
-                    <span class="w-3 h-3 rounded-full bg-gray-400 mr-2"></span>Inactive
-                </span>
-                <span class="flex items-center">
-                    <span class="w-3 h-3 rounded-full bg-gray-800 mr-2"></span>Alert
-                </span>
-            </div>
-
-            <!-- Location Button -->
-            <div class="mt-4">
-                <button onclick="getCurrentLocation()" type="button" 
-                    class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
-                    Get Current Location
-                </button>
-            </div>
-
-            <!-- Location Form -->
-            <div class="mt-6 bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-semibold mb-4">Add Location</h2>
-                <form method="POST" action="{{ route('locations.store') }}" class="space-y-4">
-                    @csrf
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700">Location Name</label>
-                        <input type="text" id="name" name="name" required
-                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column - Map and Status -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Map Container -->
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div id="map" class="h-[600px] w-full"></div>
                     </div>
-                    <div>
-                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                        <select id="status" name="status" required
-                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="alert">Alert</option>
-                        </select>
+
+                    <!-- Status Legend -->
+                    <div class="bg-white rounded-xl shadow-sm p-4">
+                        <h3 class="font-semibold mb-3 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Location Status</span>
+                        </h3>
+                        <div class="flex space-x-6">
+                            <span class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>Active
+                            </span>
+                            <span class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-gray-400 mr-2"></span>Inactive
+                            </span>
+                            <span class="flex items-center">
+                                <span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>Alert
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea id="description" name="description" rows="3"
-                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black"></textarea>
+
+                    <!-- Route Alternatives -->
+                    <div id="routeAlternatives" class="bg-white rounded-xl shadow-sm p-6 hidden">
+                        <h3 class="font-semibold mb-4 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            <span>Alternative Routes</span>
+                        </h3>
+                        <div id="routesList" class="space-y-2"></div>
                     </div>
-                    <input type="hidden" id="latitude" name="latitude">
-                    <input type="hidden" id="longitude" name="longitude">
-                    <button type="submit" 
-                        class="w-full bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
-                        Save Location
+                </div>
+
+                <!-- Right Column - Forms -->
+                <div class="space-y-6">
+                    <!-- Current Location Button -->
+                    <button onclick="getCurrentLocation()" type="button" 
+                        class="w-full bg-black text-white px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Get Current Location</span>
                     </button>
-                </form>
-            </div>
 
-            <!-- Route Planning Form -->
-            <div class="mt-6 bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-xl font-semibold mb-4">Plan Route</h2>
-                <form id="routeForm" class="space-y-4">
-                    <div>
-                        <label for="start" class="block text-sm font-medium text-gray-700">Start Location</label>
-                        <input type="text" id="start" name="start" required
-                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
-                        <input type="hidden" id="start_lat" name="start_lat">
-                        <input type="hidden" id="start_lng" name="start_lng">
+                    <!-- Location Form -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Add Location</span>
+                        </h2>
+                        <form method="POST" action="{{ route('locations.store') }}" class="space-y-4">
+                            @csrf
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700">Location Name</label>
+                                <input type="text" id="name" name="name" required
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
+                            </div>
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                                <select id="status" name="status" required
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="alert">Alert</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea id="description" name="description" rows="3"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black"></textarea>
+                            </div>
+                            <input type="hidden" id="latitude" name="latitude">
+                            <input type="hidden" id="longitude" name="longitude">
+                            <button type="submit" 
+                                class="w-full bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                                Save Location
+                            </button>
+                        </form>
                     </div>
-                    <div>
-                        <label for="end" class="block text-sm font-medium text-gray-700">End Location</label>
-                        <input type="text" id="end" name="end" required
-                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
-                        <input type="hidden" id="end_lat" name="end_lat">
-                        <input type="hidden" id="end_lng" name="end_lng">
-                    </div>
-                    <div class="flex space-x-4">
-                        <button type="submit" 
-                            class="flex-1 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
-                            Find Safe Routes
-                        </button>
-                        <select id="routePreference" class="rounded-lg border-gray-300">
-                            <option value="balanced">Balanced</option>
-                            <option value="safer">Prefer Safer</option>
-                            <option value="shorter">Prefer Shorter</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
 
-            <!-- Route Alternatives -->
-            <div id="routeAlternatives" class="mt-6 space-y-4 hidden">
-                <h3 class="text-lg font-semibold">Alternative Routes</h3>
-                <div id="routesList" class="space-y-2"></div>
+                    <!-- Route Planning Form -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            <span>Plan Route</span>
+                        </h2>
+                        <form id="routeForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Start Location</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="start" name="start" required
+                                        class="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
+                                    <input type="hidden" id="start_lat" name="start_lat">
+                                    <input type="hidden" id="start_lng" name="start_lng">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">End Location</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="end" name="end" required
+                                        class="pl-10 mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-black focus:border-black">
+                                    <input type="hidden" id="end_lat" name="end_lat">
+                                    <input type="hidden" id="end_lng" name="end_lng">
+                                </div>
+                            </div>
+                            <div class="flex space-x-4">
+                                <button type="submit" 
+                                    class="flex-1 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                    <span>Find Safe Routes</span>
+                                </button>
+                                <select id="routePreference" class="rounded-lg border-gray-300">
+                                    <option value="balanced">Balanced</option>
+                                    <option value="safer">Prefer Safer</option>
+                                    <option value="shorter">Prefer Shorter</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
